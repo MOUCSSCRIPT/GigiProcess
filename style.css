@@ -1,0 +1,289 @@
+/* ----- GLOBAL ----- */
+body {
+    margin: 0;
+    background: #dce1e7;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  }
+  
+ /* ----- HEADER ----- */
+.header {
+  background-color:   #fbfcfc  ;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 50px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header img {
+  margin: 0%;
+  width: 200px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.header-links {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+
+.header-links a {
+  color: black;
+  padding: 5px 10px;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+.header-links select {
+  color: black;
+  padding: 5px 10px;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+
+}
+
+.header-links select:hover {
+  background-color:  #5dade2;
+  box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.header-links a:hover {
+  background-color:  #5dade2;
+  box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.header-links button {
+  background: #e0e5ec; 
+  color: black;
+  cursor: pointer;
+  border: none;
+  padding: 6px 15px;
+  border-radius: 10px;
+  box-shadow: 5px 5px 10px #a3b1c6, -5px -5px 10px #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.header-links button:hover {
+  background-color: e0e5ec;
+  box-shadow: inset 5px 5px 10px #a3b1c6,
+                inset -5px -5px 10px #ffffff;
+  }
+
+  /* ----- LANDING PAGE ----- */
+  .landing-page {
+    background-color: #5dade2;
+    color: black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 50px;
+    border-radius: 0 0 50px 50px;
+  }
+  .MainAdmin {
+   margin: 0px;
+   background-color: #5dade2;
+   display: flex;
+  }
+  .adminDashboard {
+    margin: 0px;
+    color: black;
+    display: flex;
+    padding: 30px 30px;
+    border-radius: 0 0 50px 50px;
+    justify-content:center;
+    padding: 30px 50px;
+    border-radius: 0 0 50px 50px;
+  }
+  .left-section {
+    width: 500px;
+  }
+  
+  .image {
+    border-radius: 30px;
+    width: 600px;
+  }
+  
+  .landing-page-search {
+    position: relative;
+    margin-bottom: 15px;
+  }
+  
+  .landing-page-search input {
+    border-radius: 50px;
+    border: none;
+    outline: none;
+    height: 30px;
+    padding: 0 30px;
+  }
+  
+  .landing-page-search button {
+    position: absolute;
+    box-shadow: 5px 5px 10px #a3b1c6, -5px -5px 10px #ffffff;
+    left: 200px;
+    color: white;
+    height: 30px;
+    width: 100px;
+    border-radius: 10px;
+    padding: 6px 15px;
+    border-radius: 10px;
+    background: #154360;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .landing-page-search button:hover {
+    background-color:  #5dade2 ;
+    box-shadow: inset 5px 5px 10px #154360,
+                  
+    
+  
+  }  
+  
+  /* ----- VALIDATION MESSAGES ----- */
+  .checkbox-group {
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  
+  .error {
+    color: red;
+    display: none;
+    margin-top: 10px;
+  }
+  
+  .success {
+    color: greenyellow;
+    display: none;
+    margin-top: 10px;
+  }
+  
+  .button-valider {
+    margin: 10px;
+    color:white;
+    width: 100px;
+    padding: 10px;
+    border-radius: 10px;
+    background: #154360;
+    box-shadow: 5px 5px 10px #a3b1c6, -5px -5px 10px #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  .button-valider :hover {
+    box-shadow: inset 5px 5px 10px #5dade2,
+    inset -5px -5px 10px #ffffff;
+
+  }
+  
+  /* ----- LOGIN (NEUMORPHIC STYLE) ----- */
+  .neumorphic-card {
+    background: #e0e5ec;
+    border-radius: 20px;
+    box-shadow: 10px 10px 20px #a3b1c6, -10px -10px 20px #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px; 
+    width: 320px;
+    margin: 100px auto;
+    text-align: center;
+  
+  }
+  
+  .neumorphic-input {
+    background: #e0e5ec;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    width: 50%;
+    box-shadow: inset 5px 5px 10px #a3b1c6,
+                inset -5px -5px 10px #ffffff;
+    font-size: 16px;
+    outline: none;
+  }
+  
+  .neumorphic-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #e0e5ec;
+    box-shadow: 5px 5px 10px #a3b1c6, -5px -5px 10px #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .neumorphic-button:hover {
+    box-shadow: inset 5px 5px 10px #a3b1c6,
+                inset -5px -5px 10px #ffffff;
+  }
+  
+  /* ----- TABLE CLIENTS ----- */
+  .client-table {
+    width: 100%;
+    margin-top: 20px;
+    background: white;
+    border-collapse: collapse;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .client-table th {
+    background-color: #2c3e50;
+    color: white;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .client-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .client-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* ----- ACTION BUTTONS ----- */
+  .action-button {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  
+  .validate-btn {
+    background-color: #27ae60;
+  }
+  
+  .delete-btn {
+    background-color: #c0392b;
+  }
+  
+  .logout-btn {
+    margin-bottom: 20px;
+    background-color: #e62222;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+  }
+
+
+  .AjoutClientDash {
+width: 500px;
+padding: 50px;
+display: block;
+
+  }
+
+ 
+
+     

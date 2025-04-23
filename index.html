@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>DiGiGazProcess</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="body">
+
+   <!-- HEADER -->
+<div class="header">
+  <!-- Ton nouveau logo -->
+<img width="50" src="image/logo_digigazprocess.png" alt="DiGiGazProcess logo">
+  <!-- Liens -->
+  <div class="header-links">
+    <a href="#" onclick="retourAccueil()"> COUPURE DE GAZ : démarche en ligne</a>
+    <a href="https://www.energie-info.fr/" target="_blank">Infos énergie</a>
+    <a href="https://greenalp.fr/depannage-durgence-gaz" target="_blank">Urgences</a>
+    <a href="https://greenalp.fr/" target="_blank">Home</a>
+
+    <select>
+      <option value="fr">Fr</option>
+<option value="en">En</option>
+</select>
+    <button onclick="afficherLogin()">Sign-in</button>
+  </div>
+</div>
+
+  <!-- LOGIN -->
+  <div id="loginForm" class="neumorphic-card" class="neumorphic-button >
+    <div class="left-section">
+      <h2>Connexion Admin</h2>
+      <input type="text" id="adminUsername" class="neumorphic-input" placeholder="Identifiant"><br><br>
+      <input type="password" id="adminPassword" class="neumorphic-input" placeholder="Mot de passe"><br><br>
+      <button class="neumorphic-button" onclick="loginAdmin()">Connexion</button>
+      <p id="loginError" class="error">Identifiants incorrects.</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD ADMIN -->
+  <main id="adminDashboard" class="MainAdmin">
+    <section class="adminDashboard">
+      <div> <h2> Dashboard Administrateur</h2>
+      <button class="logout-btn" onclick="logout()">🔒 Déconnexion</button>
+
+    
+        <h3>Liste des Clients</h3>
+      <table id="clientTable" class="client-table">
+        <thead>
+          <tr>
+            <th>EDL</th>
+            <th>Adresse</th>
+            <th>Étage</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="clientTableBody"></tbody>
+      </table>
+      </div>
+
+      <div class="AjoutClientDash">
+        <h3>Ajouter un client</h3>
+        <input type="text" id="newEdl" placeholder="EDL" />
+        <input type="text" id="newAdresse" placeholder="Adresse" />
+        <input type="text" id="newEtage" placeholder="Étage" />
+        <button onclick="ajouterClientDepuisFormulaire()">Ajouter</button>
+
+        <h3>Importer une liste Excel</h3>
+        <input type="file" id="importExcel" accept=".xlsx, .xls, .csv" />
+    
+      </div>
+    </section>
+  </main>
+
+  <!-- ACCUEIL -->
+  <div class="landing-page" id="homePage">
+    <div class="left-section">
+      <h1>Remplir mon avis de remise en service</h1>
+      <p>Complétez l'avis de remise en gaz en ligne si vous ne pouvez pas être présent.</p>
+
+      <div class="landing-page-search">
+        <input type="text" id="searchinput" placeholder="Tapez votre EDL">
+        <button onclick="afficherDetails()">Chercher</button>
+      </div>
+
+      <div class="details">
+        <p><strong>Nom :</strong> <span id="nomClient"></span></p>
+        <p><strong>Adresse :</strong> <span id="adresseClient"></span></p>
+
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="checkInfo"> Confirmer mon adresse</label><br>
+          <label><input type="checkbox" id="checkAttestation"> J’atteste avoir fermé les robinets</label>
+        </div>
+
+        <label for="photoInput">Photo :</label>
+        <input type="file" id="photoInput" accept="image/*">
+        <button class="button-valider" onclick="valider()">Valider</button>
+
+        <p class="error" id="errorMessage">Veuillez remplir toutes les conditions.</p>
+        <p class="success" id="successMessage">Formulaire validé avec succès !</p>
+      </div>
+    </div>
+  <div>
+    <img src="image/Grenoble.jpg" class="image" </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js" ></script>
+
+
+</body>
+</html>
