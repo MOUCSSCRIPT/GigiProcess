@@ -1,11 +1,18 @@
-let clients = [];
+// HELPERS
+function sanitizeInput(input) {
+  return input.replace(/[<>]/g, '').trim();
+}
 
-// INIT
-window.onload = () => {
-  document.getElementById("homePage").style.display = "flex";
-  document.getElementById("adminDashboard").style.display = "none";
-  document.getElementById("loginForm").style.display = "none";
-};
+function generateUniqueId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function resetForm() {
+  ["newNom", "newEdl", "newAdresse", "newEtage"].forEach(id => {
+    document.getElementById(id).value = "";
+    document.getElementById(id).classList.remove("error-border");
+  });
+}
 
 // NAVIGATION
 function afficherLogin() {
@@ -41,127 +48,344 @@ function loginAdmin() {
   }
 }
 
-// AFFICHAGE CLIENTS
-function afficherClients() {
-  const tbody = document.getElementById('clientTableBody');
+// VARIABLES GLOBALES
+let allClients = [];
+let filteredClients = [];
+
+// INITIALISATION
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("homePage").style.display = "flex";
+  document.getElementById("adminDashboard").style.display = "none";
+  document.getElementById("loginForm").style.display = "none";
+
+  setupExcelImport();
+  loadFromLocalStorage();
+});
+
+// LOCAL STORAGE
+function loadFromLocalStorage() {
+  const storedClients = localStorage.getItem('gasIncidents');
+  if (storedClients) {
+    allClients = JSON.parse(storedClients);
+
+    allClients.forEach(client => {
+      if (!client.normalizedAddress) {
+        client.normalizedAddress = normalizeAddress(client.Adresse || client['Matériel & Matricule']);
+      }
+    });
+
+    filterByAddress();
+  }
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem('gasIncidents', JSON.stringify(allClients));
+}
+
+// IMPORT EXCEL
+function setupExcelImport() {
+  document.getElementById('excel-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      processExcelData(workbook.Sheets[workbook.SheetNames[0]]);
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function processExcelData(worksheet) {
+  allClients = XLSX.utils.sheet_to_json(worksheet).map(client => ({
+    ...client,
+    Référence: client.EDL || client.Référence,
+    normalizedAddress: normalizeAddress(client.Adresse || client['Matériel & Matricule']),
+    Formé: client.Formé || false,
+    Réouvert: client.Réouvert || false
+  }));
+
+  allClients.forEach(client => {
+    if (!client.normalizedAddress) {
+      client.normalizedAddress = normalizeAddress(client.Adresse || client['Matériel & Matricule']);
+    }
+  });
+
+  updateAddressList();
+  document.getElementById('address-search').value = '';
+  filterByAddress();
+  saveToLocalStorage();
+}
+
+// GESTION DES ADRESSES
+function normalizeAddress(rawAddress) {
+  if (!rawAddress) return '';
+  return rawAddress.toString()
+    .replace(/digicode.*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function updateAddressList() {
+  const addressList = document.getElementById('address-list');
+  addressList.innerHTML = '';
+
+  const uniqueAddresses = [...new Set(allClients.map(c => c.normalizedAddress))];
+
+  uniqueAddresses.forEach(address => {
+    const option = document.createElement('option');
+    option.value = address;
+    addressList.appendChild(option);
+  });
+}
+
+// FILTRAGE & AFFICHAGE
+function filterByAddress() {
+  const searchTerm = normalizeAddress(document.getElementById('address-search').value);
+
+  filteredClients = searchTerm 
+    ? allClients.filter(c => c.normalizedAddress.includes(searchTerm))
+    : [...allClients];
+
+  displayClients();
+}
+
+function displayClients() {
+  const tbody = document.getElementById('gasIncidentsBody');
   tbody.innerHTML = '';
-  clients.forEach((client, index) => {
+
+  filteredClients.forEach((client, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${client.edl}</td>
-      <td>${client.adresse}</td>
-      <td>${client.etage}</td>
-      <td>${client.statut}</td>
-      <td>
-        <button onclick="supprimerClient(${index})">Supprimer</button>
+      <td class="checkbox-cell">
+        <input type="checkbox" id="formed-${index}" 
+          ${client.Formé ? 'checked' : ''}
+          onchange="updateStatus(${index}, 'Formé', this.checked)">
+        <label for="formed-${index}" class="checkbox-custom"></label>
+      </td>
+      <td class="checkbox-cell">
+        <input type="checkbox" id="reopened-${index}" 
+          ${client.Réouvert ? 'checked' : ''}
+          onchange="updateStatus(${index}, 'Réouvert', this.checked)">
+        <label for="reopened-${index}" class="checkbox-custom"></label>
+      </td>
+      <td>${client.Référence || '-'}</td>
+      <td>${client['PDS - Occupant'] || client.nom || '-'}</td>
+      <td>${client['État PDS'] || '-'}</td>
+      <td>${client.Étage || '-'}</td>
+     
+       <td> <input type="text" 
+               class="comment-input" 
+               value="${client['Commentaires EPI'] || ''}" 
+               onchange="updateComment(${index}, this.value)">
+      </td>
+      <!-- Nouvelle colonne Statut -->
+      <td class="status-cell ${client.statut || 'en-attente'}">
+        ${client.statut || 'En attente'}
+      </td>
+      <!-- Boutons d'actions -->
+      <td class="action-buttons">
+        <button class="btn-details" onclick="showDetails(${index})">Voir détails</button>
+        <button class="btn-delete" onclick="deleteClient(${index})">Supprimer</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
+// MISE À JOUR ÉTATS
+function updateStatus(index, field, value) {
+  filteredClients[index][field] = value;
 
+  const clientId = filteredClients[index].id;
 
-function supprimerClient(i) {
-  if (confirm("Supprimer ce client ?")) {
-    clients.splice(i, 1);
-    afficherClients();
+  let clientIndex = -1;
+
+  if (clientId) {
+    clientIndex = allClients.findIndex(c => c.id === clientId);
   }
+
+  if (clientIndex === -1 && filteredClients[index].Référence) {
+    clientIndex = allClients.findIndex(c => c.Référence === filteredClients[index].Référence);
+  }
+
+  if (clientIndex !== -1) {
+    allClients[clientIndex][field] = value;
+  }
+
+  clearTimeout(window.saveTimeout);
+  window.saveTimeout = setTimeout(() => {
+    saveToLocalStorage();
+    showAlert("Modifications sauvegardées", "success");
+  }, 1000);
 }
 
-// FORMULAIRE
+// RECHERCHE
+function resetSearch() {
+  document.getElementById('address-search').value = '';
+  filterByAddress();
+}
+
+document.getElementById('address-search').addEventListener('input', function() {
+  clearTimeout(this.searchTimeout);
+  this.searchTimeout = setTimeout(filterByAddress, 300);
+});
+
+// AJOUT CLIENT
 function ajouterClientDepuisFormulaire() {
-  const edl = document.getElementById("newEdl").value.trim();
-  const adresse = document.getElementById("newAdresse").value.trim();
-  const etage = document.getElementById("newEtage").value.trim();
+  const formData = {
+    Référence: sanitizeInput(document.getElementById("newEdl").value.trim()),
+    nom: sanitizeInput(document.getElementById("newNom").value.trim()),
+    adresse: sanitizeInput(document.getElementById("newAdresse").value.trim()),
+    Étage: sanitizeInput(document.getElementById("newEtage").value.trim()),
+    Formé: false,
+    Réouvert: false,
+    normalizedAddress: "",
+    id: generateUniqueId(),
+    dateAjout: new Date().toISOString(),
 
-  if (!edl || !adresse || !etage) return alert("Champs manquants");
-
-  if (clients.find(c => c.edl === edl)) return alert("EDL déjà existant");
-
-  clients.push({ edl, adresse, etage, statut: "En attente" });
-  afficherClients();
-
-  document.getElementById("newEdl").value = "";
-  document.getElementById("newAdresse").value = "";
-  document.getElementById("newEtage").value = "";
-}
-
-
-// IMPORT EXCEL
-document.getElementById("importExcel").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-
-  reader.onload = function (e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    for (let i = 1; i < rows.length; i++) {
-      const [edl, adresse, etage, statut = "En attente"] = rows[i];
-      if (!clients.find(c => c.edl === edl)) {
-        clients.push({ edl, adresse, etage, statut });
-      }
-    }
-
-    afficherClients();
+    // Champs nécessaires à l'affichage du tableau
+    ['PDS - Occupant']: sanitizeInput(document.getElementById("newNom").value.trim()),
+    ['État PDS']: "",
+    ['Matériel & Matricule']: "",
+    ['Commentaires EPI']: ""
   };
 
-  reader.readAsArrayBuffer(file);
-});
-  // Fonction pour afficher les détails du client depuis la page d'accueil
-  function afficherDetails() {
-    const edl = document.getElementById("searchinput").value.trim(); // Récupère l'EDL tapé par l'utilisateur
-    const client = clients.find(c => c.edl === edl); // Cherche un client avec cet EDL
-    if (!edl) { // Si l'EDL est vide
-      alert("Veuillez entrer un EDL.");
-      return;
-    }
-  
-    if (!client) {
-      alert("Aucun client trouvé avec cet EDL !");
-      return;
-    }
-  
-    // Si un client est trouvé, affiche ses informations
-    document.getElementById("nomClient").innerText = client.nom || "Nom inconnu";
-    document.getElementById("adresseClient").innerText = client.adresse || "Adresse inconnue";
+  if (!formData.Référence || !formData.nom || !formData.adresse) {
+    showAlert("Nom, Référence et Adresse sont obligatoires", "error");
+    highlightEmptyFields(formData.nom, formData.Référence, formData.adresse);
+    return;
   }
+
+  if (allClients.some(c => c.Référence === formData.Référence)) {
+    showAlert("Cette référence existe déjà", "error");
+    document.getElementById("newEdl").focus();
+    document.getElementById("newEdl").classList.add("error-border");
+    return;
+  }
+
+  formData.normalizedAddress = normalizeAddress(formData.adresse || formData['Adresse'] || formData['Matériel & Matricule']);
+  allClients.push(formData);
+
+  saveToLocalStorage();
+  updateAddressList();
+  document.getElementById('address-search').value = '';
+  filterByAddress();
+  resetForm();
+
+  showAlert(`Client ajouté (Réf: ${formData.Référence})`, "success");
+}
+
+/////////////:
+// Mise à jour des commentaires
+function updateComment(index, newComment) {
+  filteredClients[index]['Commentaires EPI'] = newComment;
   
-  
-  // VALIDATION PAR LE CLIENT
-  function valider() {
-        const edl = document.getElementById("searchinput").value.trim();
-        const checkInfo = document.getElementById("checkInfo").checked;
-        const checkAttestation = document.getElementById("checkAttestation").checked;
-        const photoInput = document.getElementById("photoInput");
-        const errorMsg = document.getElementById("errorMessage");
-        const successMsg = document.getElementById("successMessage");
-  
-        const client = clients.find(c => c.edl === edl);
-  
-        /////////
-        if (!client || !checkInfo || !checkAttestation || !photoInput.files.length) {
-      errorMessage.style.display = "block";
-      successMessage.style.display = "none";
-      return;
-    }
+  // Trouver et mettre à jour dans allClients
+  const clientRef = filteredClients[index].Référence;
+  const clientIndex = allClients.findIndex(c => c.Référence === clientRef);
+  if (clientIndex !== -1) {
+    allClients[clientIndex]['Commentaires EPI'] = newComment;
+    saveToLocalStorage();
+  }
+}
+
+// Suppression d'un client
+function deleteClient(index) {
+  if (confirm("Êtes-vous sûr de vouloir supprimer ce client ?")) {
+    const clientRef = filteredClients[index].Référence;
+    allClients = allClients.filter(c => c.Référence !== clientRef);
+    filteredClients.splice(index, 1);
+    
+    saveToLocalStorage();
+    displayClients();
+    showAlert("Client supprimé avec succès", "success");
+  }
+}
+
+function afficherDetails() {
+  const edl = document.getElementById("searchinput").value.trim();
+  if (!edl) {
+    showAlert("Veuillez entrer un EDL", "error");
+    return;
+  }
+
+  const client = allClients.find(c => c.Référence === edl);
+  if (!client) {
+    showAlert("Aucun client trouvé avec cet EDL", "error");
+    return;
+  }
+
+  // Afficher les infos client
+  document.getElementById("nomClient").textContent = client.nom || client['PDS - Occupant'] || "Non renseigné";
+  document.getElementById("adresseClient").textContent = client.Adresse || "Non renseignée";
+
+  // Stocker l'EDL pour la validation
+  document.getElementById("details").dataset.edl = edl;
+}
+function valider() {
+  const edl = document.getElementById("details").dataset.edl;
+  if (!edl) {
+    showAlert("Veuillez d'abord rechercher votre EDL", "error");
+    return;
+  }
+
+  // Vérifier les conditions
+  if (!document.getElementById("checkInfo").checked || 
+      !document.getElementById("checkAttestation").checked) {
+    document.getElementById("errorMessage").style.display = "block";
+    return;
+  }
+
+  // Gérer la photo
+  const photoInput = document.getElementById("photoInput");
+  let photoData = null;
+
+  if (photoInput.files.length > 0) {
     const reader = new FileReader();
-    reader.onload = function (e) {
-      const photoBase64 = e.target.result;
-  
-      client.photo = photoBase64;
-      client.dateValidation = new Date().toLocaleString();
-  
-      errorMessage.style.display = "none";
-      successMessage.style.display = "block";
+    reader.onload = function(e) {
+      photoData = e.target.result;
+      completeValidation(edl, photoData);
     };
-  
     reader.readAsDataURL(photoInput.files[0]);
+  } else {
+    completeValidation(edl, null);
   }
+}
+
+function completeValidation(edl, photoData) {
+  // Trouver le client
+  const clientIndex = allClients.findIndex(c => c.Référence === edl);
+  if (clientIndex === -1) return;
+
+  // Mettre à jour le statut et la photo
+  allClients[clientIndex].statut = "validé";
+  if (photoData) {
+    allClients[clientIndex].image = photoData;
+  }
+
+  // Sauvegarder et afficher confirmation
+  saveToLocalStorage();
+  document.getElementById("errorMessage").style.display = "none";
+  document.getElementById("successMessage").style.display = "block";
   
-  
+  // Réinitialiser après 3s
+  setTimeout(() => {
+    document.getElementById("successMessage").style.display = "none";
+    resetForm();
+  }, 3000);
+}
+
+function resetForm() {
+  document.getElementById("searchinput").value = "";
+  document.getElementById("nomClient").textContent = "";
+  document.getElementById("adresseClient").textContent = "";
+  document.getElementById("checkInfo").checked = false;
+  document.getElementById("checkAttestation").checked = false;
+  document.getElementById("photoInput").value = "";
+  delete document.getElementById("details").dataset.edl;
+}
 
